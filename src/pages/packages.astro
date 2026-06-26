@@ -1,0 +1,83 @@
+---
+import PageLayout from '@/layouts/PageLayout.astro';
+import PackageCard from '@/components/PackageCard.astro';
+import PackagePurchaseForm from '@/components/PackagePurchaseForm.astro';
+import { getCollection } from 'astro:content';
+
+const pageTitle = 'Class Packages';
+const pageDescription =
+  'Save on yoga and somatic classes with multi-class packages. Commit to your practice, settle into a rhythm, and show up for yourself in Asheville, NC.';
+
+const packages = await getCollection('packages');
+const sortedPackages = packages.sort((a, b) => a.data.class_count - b.data.class_count);
+
+const packageOptions = sortedPackages.map((pkg) => ({
+  title: pkg.data.title,
+  cost: pkg.data.cost,
+}));
+
+// TODO: Set VENMO_USERNAME and ZELLE_CONTACT in .env / platform env vars for production
+const venmoUsername = import.meta.env.VENMO_USERNAME ?? 'YOUR_VENMO_USERNAME';
+const zelleContact = import.meta.env.ZELLE_CONTACT ?? 'YOUR_PHONE_OR_EMAIL';
+---
+
+<PageLayout title={pageTitle} description={pageDescription}>
+  <section class="py-16 md:py-20 px-6 border-b border-border/60">
+    <div class="container max-w-3xl mx-auto text-center">
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold text-foreground">Class Packages</h1>
+      <p class="mt-6 text-lg text-muted-foreground leading-relaxed">
+        Packages are a gentle way to commit — not to perfection, but to returning. You save a little,
+        settle into a rhythm, and give yourself permission to keep showing up.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 px-6">
+    <div class="container max-w-5xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-end justify-items-center">
+        {
+          sortedPackages.map((pkg) => (
+            <PackageCard
+              title={pkg.data.title}
+              classCount={pkg.data.class_count}
+              cost={pkg.data.cost}
+              perClassCost={pkg.data.per_class_cost}
+              validityDays={pkg.data.validity_days}
+              description={pkg.data.description}
+              highlight={pkg.data.highlight}
+            />
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 px-6 bg-muted/30">
+    <div class="container max-w-2xl mx-auto">
+      <PackagePurchaseForm
+        packages={packageOptions}
+        venmoUsername={venmoUsername}
+        zelleContact={zelleContact}
+      />
+
+      <div class="mt-10 rounded-xl border border-border bg-card p-6 md:p-8 space-y-4 text-sm">
+        <h3 class="font-serif text-lg font-semibold text-foreground">Payment Instructions</h3>
+        <p>
+          <strong class="text-foreground">Venmo:</strong>
+          <span class="text-muted-foreground"> @{venmoUsername}</span>
+          <span class="block text-muted-foreground mt-1">
+            Include the class or package name in your payment note.
+          </span>
+        </p>
+        <p>
+          <strong class="text-foreground">Zelle:</strong>
+          <span class="text-muted-foreground"> {zelleContact}</span>
+        </p>
+        <p class="text-muted-foreground leading-relaxed pt-2 border-t border-border">
+          Packages are activated once payment is received. We&apos;ll be in touch within 24 hours to
+          confirm.
+        </p>
+      </div>
+    </div>
+  </section>
+</PageLayout>

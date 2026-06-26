@@ -1,0 +1,31 @@
+---
+/**
+ * Page Layout
+ *
+ * Standard wrapper for ConcordiaSpring content pages and the landing page.
+ * Extends BaseLayout with SEO-friendly title handling.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  completeTitle?: boolean;
+  ogImage?: string;
+  canonicalURL?: string;
+  /** @deprecated Use ogImage */
+  image?: string;
+}
+
+const { title, description, completeTitle = false, ogImage, canonicalURL, image } = Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  completeTitle={completeTitle}
+  ogImage={ogImage ?? image}
+  canonicalURL={canonicalURL}
+>
+  <slot />
+</BaseLayout>

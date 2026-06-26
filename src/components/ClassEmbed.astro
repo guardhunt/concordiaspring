@@ -1,0 +1,23 @@
+---
+/**
+ * ClassEmbed
+ * Wraps the Cal.com embed for a specific event type.
+ */
+import CalEmbed from '@/components/CalEmbed';
+
+interface Props {
+  eventSlug: string;
+  calUsername?: string;
+}
+
+const {
+  eventSlug,
+  calUsername = import.meta.env.PUBLIC_CAL_USERNAME ?? 'your-cal-username',
+} = Astro.props;
+
+const calLink = `${calUsername}/${eventSlug}`;
+---
+
+<div class="rounded-xl border border-border bg-card overflow-hidden">
+  <CalEmbed client:load calLink={calLink} />
+</div>

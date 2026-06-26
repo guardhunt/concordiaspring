@@ -1,0 +1,93 @@
+---
+/**
+ * SEO Head Component
+ *
+ * ConcordiaSpring meta tags: description, Open Graph, Twitter, canonical URL.
+ */
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+  canonicalURL?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+  author?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  ogImage = '/og-default.png',
+  canonicalURL,
+  type = 'website',
+  publishedTime,
+  author = 'ConcordiaSpring',
+  noindex = false,
+} = Astro.props;
+
+const siteUrl = Astro.site ?? new URL('http://localhost:4321');
+const resolvedCanonical = canonicalURL
+  ? new URL(canonicalURL, siteUrl)
+  : new URL(Astro.url.pathname, siteUrl);
+const socialImageURL = new URL(ogImage, siteUrl);
+
+const siteName = 'ConcordiaSpring';
+---
+
+<!-- Primary Meta Tags -->
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<!-- Browser UI theming -->
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f6f2" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#332e28" />
+
+<!-- Structured data -->
+<script
+  type="application/ld+json"
+  set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: siteName,
+    url: siteUrl.toString(),
+    description,
+  })}
+/>
+
+<!-- Canonical URL -->
+<link rel="canonical" href={resolvedCanonical} />
+
+<!-- Open Graph -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={resolvedCanonical} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={socialImageURL} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={title} />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:locale" content="en_US" />
+
+{
+  type === 'article' && publishedTime && (
+    <>
+      <meta property="article:published_time" content={publishedTime.toISOString()} />
+      <meta property="article:author" content={author} />
+    </>
+  )
+}
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content={resolvedCanonical} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={socialImageURL} />
+<meta name="twitter:image:alt" content={title} />
+
+<!-- Sitemap -->
+<link rel="sitemap" href="/sitemap-index.xml" />

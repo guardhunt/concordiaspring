@@ -1,0 +1,49 @@
+---
+import PageLayout from '@/layouts/PageLayout.astro';
+import FAQ from '@/components/sections/FAQ.astro';
+
+const pageTitle = 'FAQ';
+const pageDescription =
+  'Common questions about ConcordiaSpring classes, packages, booking, and somatic practice in Asheville, NC.';
+
+const faqs = [
+  {
+    question: 'Do I need experience to join?',
+    answer:
+      'No. All offerings are designed to meet you where you are. Whether you have practiced for years or are walking in for the first time, you are welcome. Guidance is offered; performance is not expected.',
+  },
+  {
+    question: 'What should I bring?',
+    answer:
+      'A yoga mat if you have one. Comfortable clothes you can move in. An open mind — and whatever honesty you can bring about how you actually feel that day.',
+  },
+  {
+    question: 'How do packages work?',
+    answer:
+      'You purchase a package, we confirm receipt of payment, and you use your classes over time. No app, no portal — just show up. Package details and purchase requests are on the Packages page.',
+  },
+  {
+    question: 'What is somatic practice?',
+    answer:
+      'Somatic practice works with felt experience in the body — sensation, breath, movement, and sometimes stillness — rather than only ideas about the body. It asks what is happening here, now, and invites you to listen without rushing to change it. [PLACEHOLDER: expand with your own language and lineage when ready.]',
+  },
+  {
+    question: 'Can I get a refund?',
+    answer:
+      'Packages are generally non-refundable once activated. If you need to cancel a single class booking, please reach out as soon as possible — we will do our best to accommodate. [PLACEHOLDER: finalize refund and cancellation policy before launch.]',
+  },
+  {
+    question: 'How do I book a class?',
+    answer:
+      "Visit the offering page for the class you want and use the booking form. You'll receive a confirmation email with payment details for Venmo or Zelle.",
+  },
+];
+---
+
+<PageLayout title={pageTitle} description={pageDescription}>
+  <FAQ
+    title="Frequently Asked Questions"
+    subtitle="Practical details about classes, packages, and how to join us."
+    faqs={faqs}
+  />
+</PageLayout>

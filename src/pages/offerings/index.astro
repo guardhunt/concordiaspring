@@ -1,0 +1,63 @@
+---
+import PageLayout from '@/layouts/PageLayout.astro';
+import OfferingGrid from '@/components/OfferingGrid.astro';
+import OfferingCard from '@/components/OfferingCard.astro';
+import { getCollection } from 'astro:content';
+
+const pageTitle = 'Offerings';
+const pageDescription =
+  'Yoga classes, somatic workshops, and immersive experiences in Asheville, NC. Small groups, embodied practice, no performance required.';
+
+const offerings = await getCollection('offerings', ({ data }) => data.active === true);
+
+const sortedOfferings = offerings.sort((a, b) => {
+  if (a.data.featured !== b.data.featured) {
+    return a.data.featured ? -1 : 1;
+  }
+  return a.data.title.localeCompare(b.data.title);
+});
+---
+
+<PageLayout title={pageTitle} description={pageDescription}>
+  <section class="py-16 md:py-20 px-6 border-b border-border/60">
+    <div class="container max-w-3xl mx-auto text-center">
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold text-foreground">Offerings</h1>
+      <p class="mt-6 text-lg text-muted-foreground leading-relaxed">
+        Each class and workshop is an invitation to slow down, feel what is present, and practice
+        with others who are doing the same. No levels, no performance — just honest attention to
+        what the body knows.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 px-6">
+    <div class="container max-w-5xl mx-auto">
+      {
+        sortedOfferings.length > 0 ? (
+          <OfferingGrid>
+            {sortedOfferings.map((offering) => (
+              <OfferingCard
+                title={offering.data.title}
+                type={offering.data.type}
+                teacher={offering.data.teacher}
+                cost={offering.data.cost}
+                duration={offering.data.duration}
+                schedule={offering.data.schedule}
+                slug={offering.id}
+                featured={offering.data.featured}
+              />
+            ))}
+          </OfferingGrid>
+        ) : (
+          <p class="text-center text-muted-foreground">
+            New offerings are on the way. Check back soon or{' '}
+            <a href="/contact" class="text-primary hover:text-primary/80 transition-colors">
+              get in touch
+            </a>
+            .
+          </p>
+        )
+      }
+    </div>
+  </section>
+</PageLayout>

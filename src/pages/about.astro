@@ -1,0 +1,118 @@
+---
+import PageLayout from '@/layouts/PageLayout.astro';
+import CTA from '@/components/sections/CTA.astro';
+
+const pageTitle = 'About';
+const pageDescription =
+  'Learn about ConcordiaSpring — yoga and somatic practice in Asheville, NC. Grounded classes, small groups, and a teacher who meets you where you are.';
+---
+
+<PageLayout title={pageTitle} description={pageDescription}>
+  <section class="py-16 md:py-20 px-6 border-b border-border/60">
+    <div class="container max-w-3xl mx-auto text-center">
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold text-foreground">
+        About ConcordiaSpring
+      </h1>
+      <p class="mt-6 text-lg text-muted-foreground leading-relaxed">
+        A small school for yoga and somatic practice in Asheville — where the pace is human, the
+        room is quiet enough to hear yourself, and showing up counts more than performing well.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 px-6">
+    <div class="container max-w-3xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold text-foreground mb-8">The School</h2>
+      <div class="space-y-6 text-muted-foreground leading-relaxed">
+        <p>
+          ConcordiaSpring grew from a simple conviction: the body already knows how to heal, settle,
+          and find its way home. Our work is not to fix you or push you toward someone else&apos;s
+          idea of wellness. It is to create conditions where you can feel what is actually here —
+          breath, weight, sensation, presence — and practice from that honesty.
+        </p>
+        <p>
+          Classes are small on purpose. Workshops go deeper into somatic inquiry. Nothing is built
+          for spectacle or scale. We are not trying to be the biggest studio in town. We are trying
+          to be a place where you are recognized when you walk in the door.
+        </p>
+        <!-- [PLACEHOLDER] Expand with origin story, naming, or community context when ready -->
+        <p>
+          The name points toward concord — agreement, harmony — and spring as both season and source.
+          Practice here is relational: with yourself, with the room, with what moves through the
+          body when it is given time.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-muted py-16 md:py-20 px-6">
+    <div class="container max-w-3xl mx-auto">
+      <div class="grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,240px)] md:items-start">
+        <div>
+          <h2 class="font-serif text-3xl font-semibold text-foreground mb-8">The Teacher</h2>
+          <div class="space-y-6 text-muted-foreground leading-relaxed">
+            <p>
+              Christopher teaches yoga and somatic practice in Asheville. He is a somatic coach, a
+              writer, and a former freediving instructor — work that taught him how much intelligence
+              lives below the level of words.
+            </p>
+            <p>
+              He holds a degree in computer science from Berea College. That path may seem unrelated,
+              but it sharpened his attention to systems: how parts relate, where friction lives, and
+              what happens when you slow down enough to notice the whole.
+            </p>
+            <!-- [PLACEHOLDER] Personal teaching philosophy, certifications, years of practice -->
+            <p>
+              In class, he favors clarity over charisma. You will find precise guidance, room for
+              your own experience, and an atmosphere that takes your inner life seriously without
+              making it precious.
+            </p>
+          </div>
+        </div>
+        <figure>
+          <!-- TODO: Replace placeholder with teacher photo
+          <img
+            src="/images/christopher.jpg"
+            alt="Christopher, teacher at ConcordiaSpring"
+            class="w-full rounded-xl object-cover aspect-[3/4]"
+            width="480"
+            height="640"
+            loading="lazy"
+          />
+          -->
+          <div
+            class="aspect-[3/4] w-full max-w-xs mx-auto md:mx-0 rounded-xl border border-border bg-card flex items-center justify-center"
+            role="img"
+            aria-label="Teacher photo placeholder"
+          >
+            <span class="text-sm text-muted-foreground px-4 text-center">Photo coming soon</span>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 px-6">
+    <div class="container max-w-3xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold text-foreground mb-8">The Space</h2>
+      <div class="space-y-6 text-muted-foreground leading-relaxed">
+        <!-- [PLACEHOLDER] Studio name, address, parking, accessibility notes -->
+        <p>
+          Classes are held in Asheville, NC. Exact location and directions are shared when you book
+          — we keep the address private until registration so the space stays calm and unhurried for
+          those who are already on their way.
+        </p>
+        <p>
+          Bring a mat if you have one. The room is kept simple: enough light, enough quiet, nothing
+          that competes with the practice.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <CTA
+    title="Come to a class"
+    description="See what is currently offered and reserve your spot. No experience required — just willingness to arrive."
+    cta={{ href: '/offerings', label: 'View offerings' }}
+  />
+</PageLayout>

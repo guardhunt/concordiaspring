@@ -1,0 +1,215 @@
+---
+/**
+ * PackagePurchaseForm
+ * Purchase intent form. Posts to Web3Forms, no backend needed.
+ */
+interface PackageOption {
+  title: string;
+  cost: number;
+}
+
+interface Props {
+  packages: PackageOption[];
+  venmoUsername?: string;
+  zelleContact?: string;
+}
+
+const {
+  packages,
+  venmoUsername = import.meta.env.VENMO_USERNAME ?? 'YOUR_VENMO_USERNAME',
+  zelleContact = import.meta.env.ZELLE_CONTACT ?? 'YOUR_PHONE_OR_EMAIL',
+} = Astro.props;
+
+const web3FormsKey = import.meta.env.WEB3FORMS_ACCESS_KEY ?? '';
+---
+
+<section id="purchase-form" class="scroll-mt-24">
+  <div class="rounded-xl border border-border bg-card p-8 md:p-10">
+    <h2 class="font-serif text-2xl md:text-3xl font-semibold text-foreground">
+      Purchase a Package
+    </h2>
+    <p class="mt-2 text-sm text-muted-foreground">
+      Tell us which package you&apos;d like. We&apos;ll confirm your spot once payment is received.
+    </p>
+
+    <div id="package-form-error" class="hidden mt-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+      Something went wrong sending your request. Please try again, or email us directly.
+    </div>
+
+    <form id="package-form" class="mt-8 space-y-6">
+      <input type="hidden" name="access_key" value={web3FormsKey} />
+      <input type="hidden" name="subject" value="New Package Purchase Request — ConcordiaSpring" />
+      <input type="hidden" name="from_name" value="ConcordiaSpring Package Form" />
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="space-y-2">
+          <label for="package-name" class="text-sm font-medium text-foreground">Full Name</label>
+          <input
+            id="package-name"
+            name="name"
+            type="text"
+            required
+            autocomplete="name"
+            class="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+        </div>
+        <div class="space-y-2">
+          <label for="package-email" class="text-sm font-medium text-foreground">Email</label>
+          <input
+            id="package-email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            class="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label for="package-phone" class="text-sm font-medium text-foreground">Phone</label>
+        <input
+          id="package-phone"
+          name="phone"
+          type="tel"
+          required
+          autocomplete="tel"
+          class="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label for="package-select" class="text-sm font-medium text-foreground">Package</label>
+        <select
+          id="package-select"
+          name="package"
+          required
+          class="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <option value="" disabled selected>Select a package</option>
+          {
+            packages.map((pkg) => (
+              <option value={`${pkg.title} ($${pkg.cost})`}>
+                {pkg.title} — ${pkg.cost}
+              </option>
+            ))
+          }
+        </select>
+      </div>
+
+      <fieldset class="space-y-3">
+        <legend class="text-sm font-medium text-foreground">Preferred Payment</legend>
+        <div class="flex flex-wrap gap-6">
+          <label class="inline-flex items-center gap-2 text-sm text-foreground cursor-pointer">
+            <input
+              type="radio"
+              name="payment_method"
+              value="Venmo"
+              required
+              class="h-4 w-4 border-input text-primary focus:ring-ring"
+            />
+            Venmo
+          </label>
+          <label class="inline-flex items-center gap-2 text-sm text-foreground cursor-pointer">
+            <input
+              type="radio"
+              name="payment_method"
+              value="Zelle"
+              class="h-4 w-4 border-input text-primary focus:ring-ring"
+            />
+            Zelle
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="space-y-2">
+        <label for="package-notes" class="text-sm font-medium text-foreground">
+          Additional Notes <span class="text-muted-foreground font-normal">(optional)</span>
+        </label>
+        <textarea
+          id="package-notes"
+          name="message"
+          rows={4}
+          class="flex min-h-[100px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          placeholder="Anything we should know?"
+        ></textarea>
+      </div>
+
+      <button
+        type="submit"
+        id="package-submit"
+        class="inline-flex w-full items-center justify-center rounded-xl bg-primary text-primary-foreground px-4 py-3 text-sm font-medium hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        Submit Purchase Request
+      </button>
+    </form>
+
+    <div id="package-form-success" class="hidden mt-8 space-y-6" role="status">
+      <p class="text-lg text-foreground font-medium">Thank you — we received your request.</p>
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        Please complete payment using the method you selected. We&apos;ll confirm your package
+        within 24 hours once payment is received.
+      </p>
+      <div class="rounded-xl border border-border bg-muted/50 p-6 space-y-3 text-sm">
+        <p>
+          <strong class="text-foreground">Venmo:</strong>
+          <span class="text-muted-foreground"> @{venmoUsername}</span>
+          <span class="block text-muted-foreground mt-1">
+            Include the package name in your payment note.
+          </span>
+        </p>
+        <p>
+          <strong class="text-foreground">Zelle:</strong>
+          <span class="text-muted-foreground"> {zelleContact}</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function initPackageForm() {
+    const form = document.getElementById('package-form') as HTMLFormElement | null;
+    const successEl = document.getElementById('package-form-success');
+    const errorEl = document.getElementById('package-form-error');
+    const submitBtn = document.getElementById('package-submit') as HTMLButtonElement | null;
+
+    if (!form || form.dataset.initialized === 'true') return;
+    form.dataset.initialized = 'true';
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorEl?.classList.add('hidden');
+      submitBtn?.setAttribute('disabled', 'true');
+
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message ?? 'Submission failed');
+        }
+
+        form.classList.add('hidden');
+        successEl?.classList.remove('hidden');
+      } catch {
+        errorEl?.classList.remove('hidden');
+        submitBtn?.removeAttribute('disabled');
+      }
+    });
+  }
+
+  initPackageForm();
+  document.addEventListener('astro:after-swap', initPackageForm);
+</script>

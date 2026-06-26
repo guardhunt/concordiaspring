@@ -1,0 +1,90 @@
+---
+import PageLayout from '@/layouts/PageLayout.astro';
+import Hero from '@/components/sections/Hero.astro';
+import Features from '@/components/sections/Features.astro';
+import CTA from '@/components/sections/CTA.astro';
+import OfferingCard from '@/components/OfferingCard.astro';
+import { getCollection } from 'astro:content';
+
+const pageTitle = 'ConcordiaSpring — Yoga & Somatics, Asheville NC';
+const pageDescription =
+  'Yoga and somatic practice in Asheville, NC. Classes, workshops, and experiences for those ready to return to themselves.';
+
+const values = [
+  {
+    title: 'Presence over performance',
+    description: 'This is not a fitness class. It is a practice of coming back.',
+    icon: 'shield',
+  },
+  {
+    title: 'Rooted in sensation',
+    description: 'We work with what the body actually holds, not what we think it should do.',
+    icon: 'globe',
+  },
+  {
+    title: 'Small and relational',
+    description: 'Classes are intentionally small. You will be known here.',
+    icon: 'users',
+  },
+];
+
+const featuredOfferings = await getCollection(
+  'offerings',
+  ({ data }) => data.featured === true && data.active === true
+);
+const featuredOffering = featuredOfferings[0];
+---
+
+<PageLayout title={pageTitle} description={pageDescription} completeTitle>
+  <Hero
+    variant="warm"
+    title="Where the body comes home."
+    subtitle="Yoga and somatic practice in Asheville, NC.<br />Classes, workshops, and experiences for those ready to return to themselves."
+    primaryCta={{ href: '/offerings', label: 'See Offerings' }}
+    secondaryCta={{ href: '/contact', label: 'Get in Touch' }}
+  />
+
+  <Features title="How we practice" features={values} />
+
+  {
+    featuredOffering && (
+      <section class="py-20 px-6">
+        <div class="container max-w-5xl mx-auto">
+          <h2 class="font-serif text-3xl md:text-4xl font-semibold text-center mb-10">
+            Currently Offering
+          </h2>
+          <div class="max-w-md mx-auto">
+            <OfferingCard
+              title={featuredOffering.data.title}
+              type={featuredOffering.data.type}
+              teacher={featuredOffering.data.teacher}
+              cost={featuredOffering.data.cost}
+              duration={featuredOffering.data.duration}
+              schedule={featuredOffering.data.schedule}
+              slug={featuredOffering.id}
+              featured={featuredOffering.data.featured}
+            />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- TODO: Replace with a real student testimonial -->
+  <section class="section-muted py-20 px-6">
+    <blockquote class="container max-w-3xl mx-auto text-center" data-animate="fade">
+      <p class="font-serif text-2xl md:text-3xl italic text-foreground leading-relaxed">
+        &ldquo;Something shifted in my body that I had been trying to think my way through for years.&rdquo;
+      </p>
+      <footer class="mt-6 text-sm text-muted-foreground">
+        &mdash; Student, Sunday Morning Yoga
+      </footer>
+    </blockquote>
+  </section>
+
+  <CTA
+    title="Ready to begin?"
+    description="Explore our current classes and workshops. No experience required — just a willingness to arrive."
+    cta={{ href: '/offerings', label: 'View all offerings' }}
+  />
+</PageLayout>

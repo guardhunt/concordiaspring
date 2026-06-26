@@ -1,0 +1,100 @@
+---
+import OfferingLayout from '@/layouts/OfferingLayout.astro';
+import ClassEmbed from '@/components/ClassEmbed.astro';
+import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const offerings = await getCollection('offerings', ({ data }) => data.active === true);
+
+  return offerings.map((offering) => ({
+    params: { slug: offering.id },
+    props: { offering },
+  }));
+}
+
+interface Props {
+  offering: CollectionEntry<'offerings'>;
+}
+
+const { offering } = Astro.props;
+const { Content } = await render(offering);
+
+const typeLabels = {
+  class: 'Class',
+  workshop: 'Workshop',
+  series: 'Series',
+};
+
+const eventStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: offering.data.title,
+  description: offering.data.description,
+  organizer: { '@type': 'Organization', name: 'ConcordiaSpring' },
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  eventStatus: 'https://schema.org/EventScheduled',
+};
+---
+
+<OfferingLayout title={offering.data.title} description={offering.data.description}>
+  <script type="application/ld+json" set:html={JSON.stringify(eventStructuredData)} />
+
+  <a
+    href="/offerings"
+    class="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
+  >
+    <span aria-hidden="true" class="mr-1">←</span>
+    All Offerings
+  </a>
+
+  <header class="mb-10">
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <span
+        class="inline-flex items-center rounded-full bg-primary-200 px-3 py-1 text-xs font-medium text-primary-700"
+      >
+        {typeLabels[offering.data.type]}
+      </span>
+      {
+        offering.data.featured && (
+          <span class="inline-flex items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-medium text-background">
+            Featured
+          </span>
+        )
+      }
+    </div>
+    <h1 class="font-serif text-4xl md:text-5xl font-semibold text-foreground">
+      {offering.data.title}
+    </h1>
+    <p class="mt-3 text-muted-foreground">with {offering.data.teacher}</p>
+    <dl class="mt-6 grid gap-3 sm:grid-cols-3 text-sm">
+      <div>
+        <dt class="text-muted-foreground">Schedule</dt>
+        <dd class="font-medium text-foreground mt-1">{offering.data.schedule}</dd>
+      </div>
+      <div>
+        <dt class="text-muted-foreground">Duration</dt>
+        <dd class="font-medium text-foreground mt-1">{offering.data.duration}</dd>
+      </div>
+      <div>
+        <dt class="text-muted-foreground">Cost</dt>
+        <dd class="font-medium text-primary mt-1">${offering.data.cost}</dd>
+      </div>
+    </dl>
+  </header>
+
+  <div class="prose prose-neutral max-w-none mb-16">
+    <Content />
+  </div>
+
+  <section class="border-t border-border pt-12">
+    <h2 class="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-6">
+      Reserve your spot
+    </h2>
+    <ClassEmbed eventSlug={offering.data.calcom_event_slug} />
+    <p class="mt-6 text-sm text-muted-foreground leading-relaxed">
+      A ${offering.data.cost} payment is due at time of booking. You will receive a confirmation
+      email with Venmo and Zelle payment details.
+    </p>
+  </section>
+</OfferingLayout>

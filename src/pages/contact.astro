@@ -1,0 +1,35 @@
+---
+import PageLayout from '@/layouts/PageLayout.astro';
+import ContactForm from '@/components/ContactForm.astro';
+
+const pageTitle = 'Contact';
+const pageDescription =
+  'Get in touch with ConcordiaSpring in Asheville, NC. Questions about classes, workshops, private sessions, or offerings — reach out anytime.';
+---
+
+<PageLayout title={pageTitle} description={pageDescription}>
+  <section class="py-16 md:py-20 px-6">
+    <div class="container max-w-2xl mx-auto">
+      <div class="text-center mb-12">
+        <h1 class="font-serif text-4xl md:text-5xl font-semibold text-foreground">Let&apos;s talk.</h1>
+        <p class="mt-6 text-lg text-muted-foreground leading-relaxed">
+          Whether you&apos;re curious about a class, want to ask about private sessions, or just want
+          to say hello — reach out. I read every message.
+        </p>
+      </div>
+
+      <ContactForm />
+
+      <div class="mt-12 rounded-xl border border-border bg-muted/30 p-6 md:p-8 text-sm space-y-3">
+        <p>
+          <strong class="text-foreground">Location:</strong>
+          <span class="text-muted-foreground"> Asheville, NC</span>
+        </p>
+        <p class="text-muted-foreground">
+          <!-- TODO: Replace with real Instagram URL when available -->
+          <strong class="text-foreground">Instagram:</strong> @concordiaspring (coming soon)
+        </p>
+      </div>
+    </div>
+  </section>
+</PageLayout>
