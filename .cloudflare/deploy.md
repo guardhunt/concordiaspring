@@ -8,7 +8,7 @@ Deploy this Astro static site to Cloudflare Pages.
 |---------|-------|
 | Build command | `npm run build` |
 | Build output directory | `dist` |
-| Node.js version | 20 or later |
+| Node.js version | **22** (Astro 6 requires `>=22.12.0`; set via `.node-version` or `NODE_VERSION=22`) |
 
 ## Environment variables
 

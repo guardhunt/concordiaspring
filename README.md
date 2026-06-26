@@ -57,7 +57,7 @@ Target: **Cloudflare Pages** (see `.cloudflare/deploy.md`).
 |---------|-------|
 | Build command | `npm run build` |
 | Output directory | `dist` |
-| Node version | 20+ |
+| Node version | 22+ (Astro 6 requires `>=22.12.0`) |
 
 Set build-time env vars in the Cloudflare dashboard. Confirm `site` in `astro.config.mjs` matches your live domain.
 
