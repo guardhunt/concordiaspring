@@ -129,15 +129,303 @@ git push  ──►  Cloudflare Pages  ──►  npm run build  ──►  dist
 
 Cloudflare runs `npm run build`, publishes `dist/` to its global CDN, and serves files over HTTPS. No server-side rendering at request time—every page is pre-rendered at build time. See [Deploy](#deploy) for dashboard settings and env vars.
 
+## Managing content (offerings & packages)
+
+Class listings and package tiers are **not** edited in page files. They live as markdown files in Astro **content collections**. Add or edit a `.md` file, save, and the site picks it up automatically in dev (or on the next production build).
+
+### How it works
+
+```
+src/content/offerings/*.md  ──►  offerings collection  ──►  /offerings          (grid)
+       │                         (schema in               ──►  /offerings/[slug]  (detail + booking)
+       │                          content.config.ts)     ──►  homepage featured card (if featured)
+       │
+src/content/packages/*.md   ──►  packages collection   ──►  /packages          (cards + purchase form)
+```
+
+| Piece | Location | Role |
+|-------|----------|------|
+| **Content files** | `src/content/offerings/`, `src/content/packages/` | One markdown file per class/workshop or package tier |
+| **Schema** | `src/content.config.ts` | Validates frontmatter fields (Zod); build fails if required fields are missing or wrong |
+| **Pages** | `src/pages/offerings/`, `src/pages/packages.astro` | Query collections at build time and render cards, detail pages, and forms—no manual route edits needed |
+
+**URL slugs (offerings only):** The filename (without `.md`) becomes the URL. `sunday-morning-yoga.md` → `/offerings/sunday-morning-yoga`. Use lowercase kebab-case filenames.
+
+**No CMS:** Content is version-controlled markdown. To publish changes, commit the new/edited `.md` files and deploy (or rely on your host’s auto-deploy on push).
+
+### Add a new offering (class or workshop)
+
+1. **Set up the Cal.com event type** — see [Initial Cal.com setup](#initial-calcom-setup) and [Ongoing coordination](#ongoing-coordination-adding-or-changing-a-class). Create the event in Cal.com first, then match `calcom_event_slug` in markdown.
+
+2. **Create a new markdown file** in `src/content/offerings/`:
+
+   ```bash
+   touch src/content/offerings/wednesday-evening-yoga.md
+   ```
+
+3. **Add frontmatter and body text.** Required fields are enforced by the schema in `src/content.config.ts`:
+
+   ```yaml
+   ---
+   title: "Wednesday Evening Yoga"
+   type: class                    # class | workshop | series
+   teacher: "Christopher"
+   cost: 18                       # number (USD, no $ sign)
+   duration: "75 minutes"
+   schedule: "Wednesdays 6:00–7:15pm"
+   calcom_event_slug: "wednesday-evening-yoga"   # must match Cal.com event slug
+   description: "Short summary for cards, SEO, and schema.org (one or two sentences)."
+   featured: false                # true = homepage spotlight + sorted first on /offerings
+   active: true                   # false = hidden from site (no grid card, no detail page)
+   ---
+
+   Longer description in markdown — what to expect, who it's for, what to bring.
+   This renders on the offering detail page below the header.
+   ```
+
+4. **Save and preview** with `npm run dev`, then open:
+   - [http://localhost:4321/offerings](http://localhost:4321/offerings) — card appears in the grid (if `active: true`)
+   - [http://localhost:4321/offerings/wednesday-evening-yoga](http://localhost:4321/offerings/wednesday-evening-yoga) — detail page with Cal.com embed
+
+5. **Deploy** when ready. The new route is generated at build time; no code changes required.
+
+**Edit or retire an offering:** Open the existing `.md` file. Change frontmatter or body text to update copy/pricing. Set `active: false` to remove it from the grid and stop generating its detail page (useful for past workshops without deleting history).
+
+**Homepage feature:** Only offerings with `featured: true` and `active: true` appear on the homepage. The first match in the collection is shown.
+
+### Add a new package
+
+1. **Create a new markdown file** in `src/content/packages/`:
+
+   ```bash
+   touch src/content/packages/three-class-package.md
+   ```
+
+2. **Add frontmatter.** Package pages use frontmatter only (body markdown is ignored):
+
+   ```yaml
+   ---
+   title: "3-Class Package"
+   class_count: 3
+   cost: 48
+   per_class_cost: 16            # display only — not calculated automatically
+   validity_days: 60             # optional; omit if not time-limited
+   description: "A short tagline shown on the package card."
+   highlight: false              # true = visually featured/recommended card
+   ---
+   ```
+
+3. **Save and preview** at [http://localhost:4321/packages](http://localhost:4321/packages). Cards sort by `class_count` ascending. The package also appears in the purchase form dropdown automatically.
+
+4. **Deploy** to publish.
+
+**Edit or remove a package:** Edit the `.md` file, or delete it to remove that tier from the packages page and purchase form.
+
+### Field reference
+
+**Offerings** (`src/content/offerings/`)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `title` | string | yes | Display name |
+| `type` | `class` \| `workshop` \| `series` | yes | Badge on cards and detail page |
+| `teacher` | string | yes | Shown as “with {teacher}” |
+| `cost` | number | yes | USD, no currency symbol |
+| `duration` | string | yes | e.g. `"75 minutes"` |
+| `schedule` | string | yes | Human-readable schedule |
+| `calcom_event_slug` | string | yes | Cal.com event type slug (not full URL) |
+| `description` | string | yes | Short blurb for SEO/cards |
+| `featured` | boolean | no (default `false`) | Homepage + sort priority |
+| `active` | boolean | no (default `true`) | `false` hides from site |
+
+**Packages** (`src/content/packages/`)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `title` | string | yes | Display name and form option label |
+| `class_count` | number | yes | Controls sort order on `/packages` |
+| `cost` | number | yes | Total package price (USD) |
+| `per_class_cost` | number | yes | Shown on card; set manually |
+| `validity_days` | number | no | Expiry window if applicable |
+| `description` | string | yes | Card tagline |
+| `highlight` | boolean | no (default `false`) | Featured card styling |
+
+### Troubleshooting content changes
+
+| Symptom | Likely cause |
+|---------|----------------|
+| Build error after adding a file | Missing or invalid frontmatter — compare against the tables above or run `npm run build` for the Zod error message |
+| Offering page 404 | `active: false`, or filename/slug mismatch in the URL |
+| Cal.com embed empty or wrong event | See [Cal.com troubleshooting](#calcom-troubleshooting) |
+| Change not visible in production | Dev-only save — commit, push, and wait for deploy rebuild |
+
+For brand voice, integration details, and extended schema notes, see `PROJECT.md`.
+
+## Cal.com integration (class booking)
+
+Cal.com handles **scheduling only** for individual class and workshop offerings. Package purchases use the `/packages` form (Web3Forms) — not Cal.com. Each bookable offering on the site maps to **one Cal.com event type**.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  WEBSITE (static, Astro)                                                │
+│  /offerings/[slug]  →  ClassEmbed  →  CalEmbed (React island)           │
+│       ↑                      ↑                                          │
+│  offering markdown     PUBLIC_CAL_USERNAME + calcom_event_slug          │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼  student picks a time slot
+┌─────────────────────────────────────────────────────────────────────────┐
+│  CAL.COM (hosted)                                                       │
+│  Availability, calendar holds, attendee name/email collection           │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼  POST webhook on booking
+┌─────────────────────────────────────────────────────────────────────────┐
+│  SERVERLESS (Netlify Function — see hosting note below)                 │
+│  netlify/functions/booking-confirmation.js                              │
+│  → Brevo confirmation email (Venmo link) + add to Students list       │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Integration points in this repo
+
+| # | Location | What it does |
+|---|----------|--------------|
+| 1 | **`.env` / host env** — `PUBLIC_CAL_USERNAME` | Your Cal.com username (the segment in `cal.com/your-username`). Inlined at **build time** into `ClassEmbed.astro`. Required for embeds to load the correct account. |
+| 2 | **`src/content/offerings/*.md`** — `calcom_event_slug` | Per-offering link to a Cal.com **event type slug** (e.g. `sunday-morning-yoga`). Must match the slug shown in Cal.com → Event Types → event URL. |
+| 3 | **`src/content/offerings/*.md`** — `cost` | Display-only on the site (cards, detail header, payment note). **Not** sent to Cal.com by the embed — keep it aligned with the price set in Cal.com manually. |
+| 4 | **`src/pages/offerings/[slug].astro`** | Renders offering detail page; passes `eventSlug={offering.data.calcom_event_slug}` to `ClassEmbed` in the “Reserve your spot” section. Only generated for offerings with `active: true`. |
+| 5 | **`src/components/ClassEmbed.astro`** | Builds the embed link as `{PUBLIC_CAL_USERNAME}/{eventSlug}` and wraps the React component in a styled card. |
+| 6 | **`src/components/CalEmbed.tsx`** | React island (`client:load`) using `@calcom/embed-react`. Renders Cal.com’s inline booking UI (min height 600px). This is the only client-side JS shipped for booking. |
+| 7 | **`netlify/functions/booking-confirmation.js`** | Receives Cal.com’s **booking webhook** POST. Verifies `CAL_WEBHOOK_SECRET`, then sends a Brevo transactional email and adds the attendee to the Students list. |
+| 8 | **`astro.config.mjs` + `@astrojs/react`** | React integration required for the Cal.com embed island. |
+
+**Embed URL resolution:** For `calcom_event_slug: "sunday-morning-yoga"` and `PUBLIC_CAL_USERNAME=concordiaspring`, the embed loads `concordiaspring/sunday-morning-yoga` (equivalent to `https://cal.com/concordiaspring/sunday-morning-yoga`).
+
+### What Cal.com manages vs what the website manages
+
+| Concern | Cal.com | Website (`src/content/offerings/`) |
+|---------|---------|-------------------------------------|
+| Available time slots & calendar | ✅ | — |
+| Attendee booking flow | ✅ | — |
+| Marketing copy & philosophy | — | ✅ (`description`, body markdown) |
+| Schedule label (“Sundays 9:00am”) | — | ✅ (`schedule` — display only) |
+| Duration label | — | ✅ (`duration` — display only) |
+| Price shown to visitors | Set in Cal.com event | ✅ (`cost` — must match manually) |
+| Event type URL slug | ✅ (event settings) | ✅ (`calcom_event_slug` — must match) |
+| Hide retired class | Disable/hide event type | ✅ (`active: false`) |
+| Homepage spotlight | — | ✅ (`featured: true`) |
+| Post-booking email + CRM | Webhook → Brevo | — |
+
+The website does **not** read availability or pricing from Cal.com’s API. When you change price, duration, or title in Cal.com, update the matching offering markdown so cards, SEO, and the payment note stay accurate.
+
+### Initial Cal.com setup
+
+1. **Create a [Cal.com](https://cal.com) account** and note your **username** (Settings → Profile → Username).
+
+2. **Set `PUBLIC_CAL_USERNAME`** in `.env` locally and in your host’s build environment (Cloudflare Pages → Environment variables).
+
+3. **Create one event type per offering** (Cal.com → Event Types → New):
+   - **Event slug** — lowercase kebab-case, e.g. `sunday-morning-yoga`. This becomes `calcom_event_slug` in markdown.
+   - **Title** — should match (or closely match) the offering `title` on the site.
+   - **Duration** — set the real slot length in Cal.com; mirror it in markdown `duration` for display.
+   - **Price** — set in Cal.com if you collect payment there; also set `cost` in markdown for site copy.
+   - **Availability** — configure recurring schedule or specific dates in Cal.com. The `schedule` field on the site is descriptive text only.
+
+4. **Create the offering markdown file** (see [Add a new offering](#add-a-new-offering-class-or-workshop)) with `calcom_event_slug` matching the Cal.com event slug exactly.
+
+5. **Verify locally:** `npm run dev` → open `/offerings/[slug]` → confirm the embed loads and shows the correct event.
+
+6. **Configure the booking webhook** (see below) before relying on confirmation emails in production.
+
+### Ongoing coordination: adding or changing a class
+
+Use this order every time so the site and Cal.com stay linked:
+
+| Step | In Cal.com | On the website |
+|------|------------|----------------|
+| **Add new class** | 1. Create event type with slug, price, availability | 2. Add `src/content/offerings/{slug}.md` with matching `calcom_event_slug`, `cost`, `title` |
+| **Change price** | Update event type price | Update `cost` in the offering markdown |
+| **Rename class** | Update event title | Update `title` (and `description` if needed) |
+| **Change schedule** | Update availability windows | Update `schedule` (and `duration` if length changed) |
+| **Pause bookings** | Disable event type or remove availability | Set `active: false` (removes from grid and detail route) |
+| **Retire permanently** | Archive/delete event type in Cal.com | Set `active: false` or delete the `.md` file |
+| **Homepage feature** | — | Set `featured: true` on one active offering |
+
+**Slug changes are breaking:** If you rename a Cal.com event slug, update `calcom_event_slug` in markdown. The site URL slug comes from the **filename** (`sunday-morning-yoga.md`), not from Cal.com — rename the file too if you want URLs to match.
+
+**Packages are separate:** Multi-class packages on `/packages` do not use Cal.com. Students book individual sessions via offering pages after purchasing a package offline.
+
+### Post-booking webhook
+
+After a student completes a Cal.com booking, Cal.com can POST to your serverless endpoint. The handler in `netlify/functions/booking-confirmation.js`:
+
+1. Verifies the request using `CAL_WEBHOOK_SECRET` (checks `x-cal-signature-256` or `x-cal-webhook-secret` headers).
+2. Parses attendee email, name, event title, start time, and cost from the webhook payload.
+3. Sends a **Brevo transactional email** using template ID `BREVO_TEMPLATE_ID` with params: `student_name`, `class_name`, `class_date`, `class_cost`, `venmo_link`.
+4. Adds the attendee to the Brevo **Students** list (`BREVO_STUDENTS_LIST_ID`).
+
+**Webhook env vars** (server-side only — not needed for the embed):
+
+| Variable | Purpose |
+|----------|---------|
+| `CAL_WEBHOOK_SECRET` | Must match the secret configured in Cal.com webhook settings |
+| `BREVO_API_KEY` | Brevo API access |
+| `BREVO_TEMPLATE_ID` | Booking confirmation email template |
+| `BREVO_STUDENTS_LIST_ID` | List for students who booked a class |
+| `VENMO_USERNAME` | Used to build the Venmo deep link in the confirmation email |
+
+**Configure in Cal.com:** Settings → Developer → Webhooks → Add webhook:
+
+| Setting | Value |
+|---------|-------|
+| **Subscriber URL** | `https://<your-netlify-site>/.netlify/functions/booking-confirmation` (or your Cloudflare Worker URL after migration) |
+| **Event triggers** | Booking created (and any other events you need) |
+| **Secret** | Same value as `CAL_WEBHOOK_SECRET` in your function environment |
+
+**Hosting note:** The static site deploys to **Cloudflare Pages**, but the webhook function currently lives under `netlify/functions/`. Cloudflare Pages does not run Netlify Functions. Options:
+
+- Deploy the function on **Netlify** (or migrate it to a **Cloudflare Worker**) and point the Cal.com webhook at that URL, or
+- Skip the webhook until a Worker is in place — embeds still work; only automated confirmation emails are affected.
+
+See `.cloudflare/deploy.md` and `TODOS.md` for migration checklist.
+
+### Cal.com environment variables
+
+| Variable | Scope | When needed |
+|----------|-------|-------------|
+| `PUBLIC_CAL_USERNAME` | Build (exposed to browser) | Always — embeds on offering detail pages |
+| `CAL_WEBHOOK_SECRET` | Serverless function only | Production webhook verification |
+| `BREVO_API_KEY`, `BREVO_TEMPLATE_ID`, `BREVO_STUDENTS_LIST_ID` | Serverless function only | Post-booking email and Students list |
+| `VENMO_USERNAME` | Build + serverless | Packages page payment copy; Venmo link in webhook email |
+
+### Cal.com troubleshooting
+
+| Symptom | Check |
+|---------|-------|
+| Embed shows wrong account or 404 | `PUBLIC_CAL_USERNAME` matches Cal.com username; rebuild/redeploy after changing |
+| Embed loads but wrong event | `calcom_event_slug` matches Cal.com event type slug exactly (case-sensitive) |
+| Embed blank locally | `PUBLIC_CAL_USERNAME` set in `.env`; restart `npm run dev` after env changes |
+| Price on site ≠ Cal.com checkout | Update both — site uses markdown `cost`, Cal.com uses its own event price |
+| No confirmation email after booking | Webhook URL reachable; `CAL_WEBHOOK_SECRET` matches; Brevo vars set; check function logs |
+| Webhook returns 401 | `CAL_WEBHOOK_SECRET` mismatch between Cal.com and function env |
+| Class visible on site but can’t book | Cal.com event disabled or has no availability — fix in Cal.com dashboard |
+
 ## Environment variables
 
-See `.env.example`. At minimum for local dev:
+See `.env.example`. Cal.com-specific vars are documented in [Cal.com environment variables](#calcom-environment-variables).
+
+**Minimum for local dev:**
 
 - `WEB3FORMS_ACCESS_KEY` — contact & package forms
-- `PUBLIC_CAL_USERNAME` — Cal.com embed
+- `PUBLIC_CAL_USERNAME` — Cal.com embed (see [Cal.com integration](#calcom-integration-class-booking))
 - `VENMO_USERNAME` — payment instructions on packages
 
-Optional: `PUBLIC_BREVO_API_KEY`, `PUBLIC_BREVO_INTERESTED_LIST_ID` for newsletter signup. Server-side Brevo vars (`BREVO_TEMPLATE_ID`, etc.) are for the booking webhook only.
+**Optional:** `PUBLIC_BREVO_API_KEY`, `PUBLIC_BREVO_INTERESTED_LIST_ID` for newsletter signup.
+
+**Webhook only (serverless):** `CAL_WEBHOOK_SECRET`, `BREVO_API_KEY`, `BREVO_TEMPLATE_ID`, `BREVO_STUDENTS_LIST_ID` — see [Post-booking webhook](#post-booking-webhook).
 
 ## Deploy
 
